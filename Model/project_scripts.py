@@ -1,9 +1,11 @@
 import os
 import random
+import numpy as np
+import pandas as pd
 
 def train_validation_test_split()->(dict,dict,dict):
     #We get the paths of the images
-    images_paths = os.listdir('../Data/preprocessed images')
+    images_paths = os.listdir('../../Data/preprocessed images')
         
     #We get the codes of the patients (a patient will have 2 images)
     patients_codes = set()
@@ -37,15 +39,15 @@ def train_validation_test_split()->(dict,dict,dict):
     for path in images_paths:
         for code in train_patients:
             if str(code) in path:
-                train_set.append(path)
+                train_set.append('../../Data/preprocessed images'+path)
                 continue
         for code in validation_patients:
             if str(code) in path:
-                validation_set.append(path)
+                validation_set.append('../../Data/preprocessed images'+path)
                 continue
         for code in test_patients:
                 if str(code) in path:
-                    test_set.append(path)
+                    test_set.append('../../Data/preprocessed images'+path)
                     continue
     
     #We create the partition for the data
@@ -72,5 +74,32 @@ def train_validation_test_split()->(dict,dict,dict):
             test_labels[path] = 1 #1 -> motion
         else:
             test_labels[path] = 0 #0 -> no motion
-    #save the result as a csv partition | path | label
+            
+    #Save the result as a csv partition | path | label
+    
+    #We save the result in a csv
+    arr = []
+    for path in partition['train']:
+        arr.append(['train', path, train_labels[path]])
+    for path in partition['validation']:
+        arr.append(['validation', path, train_labels[path]])
+    for path in partition['test']:
+        arr.append(['test', path, test_labels[path]])
+    
+    train_col = []
+    path_col = []
+    label_col = []
+    for lst in arr:
+        train_col.append(lst[0])
+        path_col.append(lst[1])
+        label_col.append(lst[2])
+        
+    df = pd.DataFrame()
+    df['partition'] = train_col
+    df['path'] = path_col
+    df['label'] = label_col
+    
+    df = df.set_index('path')
+    df.to_csv('../Data Splits/train_validation_test_split.csv')
+    
     return (partition, train_labels, test_labels)
