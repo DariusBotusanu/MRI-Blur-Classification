@@ -16,7 +16,7 @@ def scale_to_0_255(image: ndarray)->ndarray:
     max_pixel = image.max()
     m = 255/(max_pixel-min_pixel)
     b = -m*min_pixel
-    return m*image+b
+    return int(m*image+b)
 
 if __name__ == "__main__":
     npy_bias_corrected = os.listdir('../Data/n4 bias corrected')

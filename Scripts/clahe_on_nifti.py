@@ -21,10 +21,6 @@ for img in images:
     img_clahe = np.zeros_like(img)
     for i in range(img.shape[0]):
         img_clahe[i,:,:] =  apply_clahe_on_image(img[i,:,:], clahe)
-    for i in range(img.shape[1]):
-        img_clahe[:,i,:] =  apply_clahe_on_image(img[:,i,:], clahe)
-    for i in range(img.shape[2]):
-        img_clahe[:,:,i] =  apply_clahe_on_image(img[:,:,i], clahe)
     
     path_to_save = '../Data/preprocessed images/'+npy_corrected_and_scaled[j][:-4]
     j+=1
