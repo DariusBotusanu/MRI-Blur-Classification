@@ -39,15 +39,15 @@ def train_validation_test_split()->(dict,dict,dict):
     for path in images_paths:
         for code in train_patients:
             if str(code) in path:
-                train_set.append('../../Data/preprocessed images'+path)
+                train_set.append('../../Data/preprocessed images/'+path)
                 continue
         for code in validation_patients:
             if str(code) in path:
-                validation_set.append('../../Data/preprocessed images'+path)
+                validation_set.append('../../Data/preprocessed images/'+path)
                 continue
         for code in test_patients:
                 if str(code) in path:
-                    test_set.append('../../Data/preprocessed images'+path)
+                    test_set.append('../../Data/preprocessed images/'+path)
                     continue
     
     #We create the partition for the data
@@ -99,7 +99,6 @@ def train_validation_test_split()->(dict,dict,dict):
     df['path'] = path_col
     df['label'] = label_col
     
-    df = df.set_index('path')
     df.to_csv('../Data Splits/train_validation_test_split.csv')
     
     return (partition, train_labels, test_labels)

@@ -1,17 +1,25 @@
 import numpy as np
+import pandas as pd
 import keras
 
 class DataGenerator(keras.utils.Sequence):
     ####Modify to read the csv
     'Generates data for Keras'
     #might need to add
-    def __init__(self, list_IDs, labels, batch_size=32, dim=(176, 256, 256), n_channels=1,
+    def __init__(self, partition='train', batch_size=32, dim=(176, 256, 256), n_channels=1,
                  n_classes=2, shuffle=True):
         'Initialization'
         self.dim = dim
         self.batch_size = batch_size
-        self.labels = labels
-        self.list_IDs = list_IDs
+        
+        
+        df = pd.read_csv('../Data Splits/train_validation_test_split.csv')
+        
+        
+        self.list_IDs = list(df[df['partition']==partition]['path'])
+        self.labels = list(df[df['partition']==partition]['label'])
+        
+        
         self.n_channels = n_channels
         self.n_classes = n_classes
         self.shuffle = shuffle
