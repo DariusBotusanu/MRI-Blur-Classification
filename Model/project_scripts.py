@@ -1,16 +1,16 @@
 import os
 import random
-import numpy as np
 import pandas as pd
 
 def train_validation_test_split()->(dict,dict,dict):
     #We get the paths of the images
-    images_paths = os.listdir('../../Data/preprocessed images')
+    images_paths = os.listdir('Data/preprocessed slices')
         
     #We get the codes of the patients (a patient will have 2 images)
     patients_codes = set()
     for path in images_paths:
-        patients_codes.add(path[:5])
+        if path[-len('_motion.npy'):] == '_motion.npy':
+            patients_codes.add(path[-len('_motion.npy')-len('NC123'):-len('_motion.npy')])
         
     #80% training data, 15% validation data, 5% testing data
     train_proportion = len(patients_codes)*80//100
@@ -39,15 +39,15 @@ def train_validation_test_split()->(dict,dict,dict):
     for path in images_paths:
         for code in train_patients:
             if str(code) in path:
-                train_set.append('../../Data/preprocessed images/'+path)
+                train_set.append('Data/preprocessed slices/'+path)
                 continue
         for code in validation_patients:
             if str(code) in path:
-                validation_set.append('../../Data/preprocessed images/'+path)
+                validation_set.append('Data/preprocessed slices/'+path)
                 continue
         for code in test_patients:
                 if str(code) in path:
-                    test_set.append('../../Data/preprocessed images/'+path)
+                    test_set.append('Data/preprocessed slices/'+path)
                     continue
     
     #We create the partition for the data
@@ -99,6 +99,6 @@ def train_validation_test_split()->(dict,dict,dict):
     df['path'] = path_col
     df['label'] = label_col
     
-    df.to_csv('../Data Splits/train_validation_test_split.csv')
+    df.to_csv('Data Splits/train_validation_test_split.csv')
     
     return (partition, train_labels, test_labels)

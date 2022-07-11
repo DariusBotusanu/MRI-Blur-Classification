@@ -1,0 +1,1 @@
+{"name": "Adagrad", "learning_rate": 0.001, "decay": 0.0, "initial_accumulator_value": 0.1, "epsilon": 1e-07}

@@ -1,0 +1,2 @@
+epoch,accuracy,binary_accuracy,binary_crossentropy,loss,val_accuracy,val_binary_accuracy,val_binary_crossentropy,val_loss
+0,0.501928985118866,0.501928985118866,0.0024031854700297117,0.0024031854700297117,0.5,0.5,2.3095438480377197,2.3095438480377197
