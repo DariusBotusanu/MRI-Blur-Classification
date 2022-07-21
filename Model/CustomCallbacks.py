@@ -135,7 +135,7 @@ class PptxReportCallback(keras.callbacks.Callback):
         for line in lines_list:
           summary_text += line + '\n' 
         
-        summary_text += 'Optimizer: '+optimizer_text
+        summary_text += 'Optimizer: ' + optimizer_text
         
         #We write the actual summary to the shape
         summary_paragraph.text = summary_text

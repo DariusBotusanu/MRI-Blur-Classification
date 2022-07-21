@@ -1,34 +1,41 @@
 import os
 import random
 import pandas as pd
+import json
 
-def train_validation_test_split()->(dict,dict,dict):
+from tensorflow.keras.models import model_from_json
+
+def model_json_loader(file_path):
+
+    config_file = open(file_path, 'r')
+    config_json = config_file.read() 
+
+    return model_from_json(config_json)
+
+
+def train_validation_test_split(val_percentage=0.15, test_percentage=0.1, trim_ends=45):
     #We get the paths of the images
     images_paths = os.listdir('Data/preprocessed slices')
         
     #We get the codes of the patients (a patient will have 2 images)
-    patients_codes = set()
-    for path in images_paths:
-        if path[-len('_motion.npy'):] == '_motion.npy':
-            patients_codes.add(path[-len('_motion.npy')-len('NC123'):-len('_motion.npy')])
+    patients_codes = list(set([p.split('_')[2] for p in images_paths])) #Retrieval of patient codes
         
-    #80% training data, 15% validation data, 5% testing data
-    train_proportion = len(patients_codes)*80//100
-    validation_proportion = len(patients_codes)*15//100
+    train_proportion = int(len(patients_codes)*(1-val_percentage-test_percentage))
+    validation_proportion = int(len(patients_codes)*val_percentage)
     
-    #We split the patients randomly
-    train_patients = random.sample(patients_codes, train_proportion)
-    
-    for code in train_patients:
-       patients_codes.remove(code)
-       
-    validation_patients = random.sample(patients_codes, validation_proportion)
-    for code in validation_patients:
-        patients_codes.remove(code)
+
+    #We partition the codes for training, evaluation and validation
+    train_patients = []
+    validation_patients = []
+
+    random.shuffle(patients_codes)
+    for i in range(train_proportion):
+      train_patients.append(patients_codes.pop(-1))
+
+    for i in range(validation_proportion):
+      validation_patients.append(patients_codes.pop(-1))
         
-    test_patients = list(patients_codes)
-    
-    ##try shuffle
+    test_patients = patients_codes
     
     #We partition the paths to the file according to the splitting
     #The files of one patient will be both included in the same class of the partition
@@ -37,6 +44,11 @@ def train_validation_test_split()->(dict,dict,dict):
     test_set = []
 
     for path in images_paths:
+        #we check if we actually add the slice or not
+        slice_num = int(path.split('_')[1])
+        if ((slice_num < trim_ends) or (slice_num > 176 - trim_ends)):
+            continue
+      
         for code in train_patients:
             if str(code) in path:
                 train_set.append('Data/preprocessed slices/'+path)
@@ -102,3 +114,65 @@ def train_validation_test_split()->(dict,dict,dict):
     df.to_csv('Data Splits/train_validation_test_split.csv')
     
     return (partition, train_labels, test_labels)
+
+def split_in_k_batches(data, k):
+    batch_size = len(data)//k
+    data_partition = []
+    temp_lst = []
+    i = 0
+    for j in range(len(data)-1,-1,-1):
+        temp_lst.append(data.pop(j))
+        i+=1
+        if i == batch_size:
+            data_partition.append(temp_lst)
+            temp_lst = []
+            i=0
+    #There may be some remaining data points unallocated (at most k-1)
+    for i in range(len(data)):
+      data_partition[i].append(data.pop(-1))
+    return data_partition
+
+def split_in_folds(test_ratio, k):
+    df = pd.read_csv('Data Splits/train_validation_test_split.csv', index_col='Unnamed: 0')
+
+    patient_codes = list(set([p.split('_')[2] for p in df['path'].unique()])) #Retrieval of patient codes
+    random.shuffle(patient_codes)
+
+    len_test = int((test_ratio)*len(patient_codes))
+    
+    test_patients = []
+    for i in range(len_test):
+      test_patients.append(patient_codes.pop(-1))
+    
+    partition = split_in_k_batches(patient_codes[:], k)
+    
+    for i in range(len(partition)):
+        paths_col = []
+        label_col = []
+        for path in df['path']:
+            for code in partition[i]:
+                if code in path:
+                    paths_col.append(path)
+                    if '_nomotion' in path:
+                        label_col.append(0)
+                    else:
+                        label_col.append(1)
+        aux_df = pd.DataFrame()
+        aux_df['path'] = paths_col
+        aux_df['label'] = label_col
+        aux_df.to_csv(f'Data Splits/{i}_fold.csv')
+    
+    paths_col = []
+    label_col = []
+    for path in df['path']:
+        for code in test_patients:
+            if code in path:
+                paths_col.append(path)
+                if '_nomotion' in path:
+                    label_col.append(0)
+                else:
+                    label_col.append(1)
+    test_frame = pd.DataFrame()
+    test_frame['path'] = paths_col
+    test_frame['label'] = label_col
+    test_frame.to_csv(f'Data Splits/test_fold.csv')
