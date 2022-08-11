@@ -13,12 +13,13 @@ def model_json_loader(file_path):
     return model_from_json(config_json)
 
 
-def train_validation_test_split(val_percentage=0.15, test_percentage=0.1, trim_ends=45):
+def train_validation_test_split(val_percentage=0.15, test_percentage=0.1, trim_ends=20):
     #We get the paths of the images
     images_paths = os.listdir('Data/preprocessed slices')
         
     #We get the codes of the patients (a patient will have 2 images)
     patients_codes = list(set([p.split('_')[2] for p in images_paths])) #Retrieval of patient codes
+    #by Andrei Lucian
         
     train_proportion = int(len(patients_codes)*(1-val_percentage-test_percentage))
     validation_proportion = int(len(patients_codes)*val_percentage)
